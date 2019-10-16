@@ -55,3 +55,77 @@ def make_sketches(path_in, path_sketch):
         
     
     return None
+    
+
+def resize(in_img, out_img, width, height):
+    """
+    Take an image and the target image, with height and width, and resize it.
+    """
+    
+    inimg = tf.image.resize(in_image, [height, width])
+    outimg = tf.image.resize(in_image, [height, width])
+    
+    return inimg, outimg
+    
+    
+
+def normalize(in_img, out_img):
+    """
+    DotCSV does -1 to 1, I usually do 0 to 1. It doesn't have big implications and it is just a numerical stability issue
+    In this case I put a lot of pixels to 0 with the green saturation, I risk that all my images become "flat"
+    """
+    
+    inimg = (in_img / 127.5) - 1
+    outimg = (out_img / 127.5) - 1
+    
+    return inimg, outimg
+    
+    
+def random_jitter(in_img, out_img):
+    """
+    The paper advises to implement it. Also it's a data augmentation pipeline, can't hurt although this will increase running time
+    
+    """
+    
+    # first, resize
+    inimage, outimage = resize(in_image, out_image, 286, 286) # Values from the paper
+    
+    # Stack, like this the crop will be the same (think physical stacking)
+    stacked_img = tf.stack([inimage, outimage], axis = 0)
+    cropped_img = tf.image.random_crop(stacked_img, size = [2, IMG_HEIGHT, IM_WIDTH, 3])
+    
+    # Un-stack
+    inimage = cropped_img[0]
+    outimage = cropped_img[1]
+    
+    # Flip only if half of the times, randomly
+    if rf.random.uniform(()) > 0.5:
+        inimage = tf.image.flip_left_right(inimage)
+        outimage = tf.image.flip_left_right(outimage)
+        
+    return inimage, outimage
+    
+    
+def load_image(filename, augment = True):
+    """
+    Read one image and augment (or not)
+    """
+    # Read jpg, make it float just in case, and the [] at the end, take whatever dimensions, but only 3 channels. If it's png it has 4 and jpeg will decode it anyway.
+    inimage = tf.cast(tf.image.decode_jpeg(tf.io.read_file(INPATH + "/" + filename)), tf.float32)[..., :3]
+    skeimage = tf.cast(tf.image.decode_jpeg(tf.io.read_file(SKEPATH + "/" + filename)), tf.float32)[..., :3]
+    
+    inimage, skeimage = resize(inimage, skeimage, IMG_HEIGHT, IMG_WIDTH)
+    
+    if augment == True:
+        inimage, outimage = random_jitter(inimage, skeimage)
+    
+    inimage, outimage = normalize(inimage, outimage)
+    
+    return inimage, outimage
+    
+
+def load_train_image(filename):
+    return load_image(filename, augment = True)
+    
+def load_test_image(filename):
+    return load_image(filename, augment = False)
