@@ -25,6 +25,29 @@ K.set_image_data_format("channels_last")
 
 
 
+# Define paths
+
+# Root
+
+PATH = "/content/drive/My Drive/Pix2PixFlowers"
+
+# Input path
+
+INPATH = "/content/drive/My Drive/Pix2PixFlowers/InputFlowers"
+
+# Sketch path
+
+SKEPATH = "/content/drive/My Drive/Pix2PixFlowers/SketchFlowers"
+
+# Output path
+
+OUTPATH = PATH = "/content/drive/My Drive/Pix2PixFlowers/OutputFlowers"
+
+# Checkpoints directory
+
+CKPATH = PATH = "/content/drive/My Drive/Pix2PixFlowers/Checkpoints"
+
+
 
 def make_sketches(path_in, path_sketch):
     
